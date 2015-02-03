@@ -1,0 +1,16 @@
+# Code::Blocks project files
+*.depend
+*.layout*
+.directory
+*.cbp
+
+# Binary files
+obj/*
+bin/*
+test/*
+
+# Backup files
+*~
+
+# Bochs config files
+.bochs.cfg
