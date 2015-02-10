@@ -14,13 +14,15 @@
 //
 //===============================================================================================
 
-#ifndef __SYMTAB_H__
+#if 0
+//#ifndef __SYMTAB_H__
 #define __SYMTAB_H__
 
 #include "in-file.h"
 
 #include <map>
 #include <string>
+#include <algorithm>
 
 //-----------------------------------------------------------------------------------------------
 // The Symbol class will contain all the attributes of a symbol used by the assembler.  I expect
@@ -43,7 +45,8 @@
 class Symbol {
 public:
     typedef enum {SYM_UNK, SYM_DIRECTIVE, SYM_OPCODE, SYM_REG, SYM_QUALIFIER,
-            SYM_ADDRESS} SymType;
+            SYM_LABEL} SymType;
+    static const std::string SymTypeStrings[];
 
 protected:
     std::string symName;           // This is a duplicate of the key value
@@ -53,13 +56,16 @@ protected:
 
 public:
     Symbol(const std::string &n, SymType t = SYM_UNK) : symName(n), type(t),
-            fileName(InputFile::FileName()), lineNum(InputFile::LineNum()) {};
+            fileName(InputFile::FileName()), lineNum(InputFile::LineNum())
+            { std::transform(symName.begin(), symName.end(), symName.begin(), ::tolower); };
     static Symbol *Factory(const std::string &n, SymType t = SYM_UNK)
             { return new Symbol(n, t); };
     virtual ~Symbol() {};
 
 public:
     Symbol *SetType(SymType t) { type = t; return this; };
+    SymType GetType(void) const { return type; };
+    const std::string &GetTypeStr(void) const { return SymTypeStrings[type]; };
     std::string Key(void) const { return symName; };
 };
 
@@ -75,9 +81,12 @@ typedef Map::iterator Iter;                   // Needed for lookups
 //-----------------------------------------------------------------------------------------------
 class SymbolTable : protected Map {
 public:
-    Symbol *Lookup(const std::string &key)
-            { Iter tmp = find(key); return (tmp == end()?NULL:tmp->second); };
+    Symbol *Lookup(std::string key)
+            { std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+                Iter tmp = find(key); return (tmp == end()?NULL:tmp->second); };
     Symbol *Insert(Symbol *sym) { (*this)[sym->Key()] = sym; return sym; };
+
+    void Print(void);
 };
 
 //-----------------------------------------------------------------------------------------------
